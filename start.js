@@ -192,9 +192,43 @@ function startActivitys() {
 
     let pagedown = findByImg('翻页箭头', transRegion(0.83, 0.7, 0.17, 0.25), 'pageDown');
 
+    //以下为扫地机修改
+
+    let confirm_r = transRegion(0.25, 0, 0.5, 0.25)
+    confirm_r[1] = pagedown.y - 0.15 * dh
+    let confirm = findByImg('进度条左端', confirm_r)
+    let confirm_mode = true
+    let confirm_clip_rw, confirm_clip_rh, confirm_clip_last
+    if (confirm){
+      confirm_clip_rw = Math.floor(dw / 2 - confirm.x)
+      confirm_clip_rh = Math.floor(dh*0.03)
+      console.log(confirm_clip_rw, confirm_clip_rh)
+      let deviceScreen = images.captureScreen()
+      confirm_clip_last = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
+      deviceScreen.recycle()
+    }else confirm_mode = false //没找到，不启用
+
     for (let i = 1; i <= Math.ceil(config.maxChefId / 12); i++) { // 设置数据，循环翻页
       setChef();
       clickFind(pagedown);
+      if (confirm_mode){
+        sleep(300)
+        let deviceScreen, confirm_clip
+        for (let j = 0; j < 10; j++) {
+          deviceScreen = images.captureScreen()
+          confirm_clip = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
+          deviceScreen.recycle()
+          let sim = images.getSimilarity(confirm_clip, confirm_clip_last)
+          if (sim < 2.95) break
+          console.log('翻页失败, 相似度:', sim)
+          clickFind(pagedown);
+          sleep(1000)
+          console.log('waiting')
+          confirm_clip.recycle()
+        }
+        confirm_clip_last.recycle()
+        confirm_clip_last = confirm_clip
+      }
     }
 
     // 返回图鉴页，优先找退出按钮，兼容九游使用物理退出键无效的问题
@@ -213,18 +247,42 @@ function startActivitys() {
     clickFind(rep);
     sleep(100);
 
+    if (confirm_mode){
+      let deviceScreen = images.captureScreen()
+      confirm_clip_last.recycle()
+      confirm_clip_last = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
+      deviceScreen.recycle()
+    }
+
+
     for (let i = 1; i <= Math.ceil(config.maxRepId / 12); i++) { // 设置数据，循环翻页
       setRep();
       clickFind(pagedown);
+      if (confirm_mode){
+        sleep(300)
+        let deviceScreen, confirm_clip
+        for (let j = 0; j < 10; j++) {
+          deviceScreen = images.captureScreen()
+          confirm_clip = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
+          deviceScreen.recycle()
+          let sim = images.getSimilarity(confirm_clip, confirm_clip_last)
+          if (sim < 2.95) break
+          console.log('翻页失败, 相似度:', sim)
+          clickFind(pagedown);
+          sleep(1000)
+          console.log('waiting')
+          confirm_clip.recycle()
+        }
+        confirm_clip_last.recycle()
+        confirm_clip_last = confirm_clip
+      }
     }
     sleep(500)
-
     // 重设后厨菜谱的id
     for (let i = 0; i < config.comboCnt; i++) {
       key = 5000 + config.comboCnt - i; // 从后往前
       bcjhData.repGot[key] = bcjhData.repGot[config.maxRepId - i];
       delete bcjhData.repGot[config.maxRepId - i]; // 删除原编号的数据
-
       foodgameData.recipes[config.maxRepId - i - 1].id = key;
     }
 
