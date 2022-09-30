@@ -27,7 +27,8 @@ ui.layout(
           <text marginTop="12" textSize="16sp" text="因为获得新菜谱时的[新]与[神]级颜色太接近，防止品阶数据出错，使用前需要点一下菜谱图鉴然后退出，把新菜的标记清掉"/>
           <text marginTop="12" text="其他：" textSize="18sp"/>
           <text marginTop="12" text="log文件地址：/sdcard/AutoUserData/log.txt；点击右上角菜单可清除log缓存。"/>
-          <text marginTop="12" text="代码 github 地址：https://github.com/yuwenxifan/autoUserData"/>
+          <text marginTop="12" text="原代码 github 地址：https://github.com/yuwenxifan/autoUserData"/>
+          <text marginTop="12" text="扫地机版代码 github 地址：https://github.com/yuwenxifan/autoUserData"/>
           <text marginTop="12" text=""/>
         </vertical>
       </vertical>
@@ -212,7 +213,7 @@ function startActivitys() {
       setChef();
       clickFind(pagedown);
       if (confirm_mode){
-        sleep(300)
+        sleep(400)
         let deviceScreen, confirm_clip
         for (let j = 0; j < 10; j++) {
           deviceScreen = images.captureScreen()
@@ -240,10 +241,12 @@ function startActivitys() {
     }
 
     // 进入名菜录
+    sleep(500);
     let rep;
     while (!rep) {
       rep = findByImg('名菜录', transRegion(0.45, 0.12, 0.28, 0.3), 'rep');
     }
+    sleep(1000);
     clickFind(rep);
     sleep(100);
 
@@ -259,7 +262,7 @@ function startActivitys() {
       setRep();
       clickFind(pagedown);
       if (confirm_mode){
-        sleep(300)
+        sleep(400)
         let deviceScreen, confirm_clip
         for (let j = 0; j < 10; j++) {
           deviceScreen = images.captureScreen()
