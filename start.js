@@ -28,7 +28,7 @@ ui.layout(
           <text marginTop="12" text="其他：" textSize="18sp"/>
           <text marginTop="12" text="log文件地址：/sdcard/AutoUserData/log.txt；点击右上角菜单可清除log缓存。"/>
           <text marginTop="12" text="原代码 github 地址：https://github.com/yuwenxifan/autoUserData"/>
-          <text marginTop="12" text="扫地机版代码 github 地址：https://github.com/yuwenxifan/autoUserData"/>
+          <text marginTop="12" text="扫地机版代码 github 地址：https://github.com/haoyun0/autoUserData"/>
           <text marginTop="12" text=""/>
         </vertical>
       </vertical>
