@@ -1,53 +1,69 @@
 {
-  "assets": [],
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "assets": [
+    {
+      "form": "/storage/emulated/0/脚本/autoUserData",
+      "to": "/project"
+    },
+    {
+      "form": "/storage/emulated/0/脚本/autouserdata",
+      "to": "/project"
+    },
+    {
+      "form": "file:///android_asset/mlkit-google-ocr-models",
+      "to": "/mlkit-google-ocr-models"
+    }
+  ],
+  "buildDir": "build",
   "build": {
     "build_id": "48B286DF-4",
     "build_number": 4,
-    "build_time": 1662261889688,
-    "release": false
+    "build_time": 1662261889688
   },
-  "encryptLevel": 0,
   "useFeatures": [],
-  "icon": "images/ic_app_logo.png",
+  "icon": "res/logo.png",
+  "ignoredDirs": [
+    "build"
+  ],
+  "encrypt-code": false,
   "launchConfig": {
     "displaySplash": true,
+    "hideAccessibilityServices": false,
+    "hideLauncher": false,
     "hideLogs": false,
-    "splashIcon": "images/ic_splash.png",
-    "splashText": "扫地机修复版",
-    "stableMode": false
+    "stableMode": true,
+    "volumeUpcontrol": false,
+    "permissions": [
+      "accessibility_services",
+      "draw_overlay"
+    ],
+    "serviceDesc": "使脚本自动操作(点击、长按、滑动等)所需，若关闭则只能执行不涉及自动操作的脚本。",
+    "splashIcon": "res/splash.jpg",
+    "splashText": "六周年改版"
   },
+  "libs": [
+    "libopencv_java4.so",
+    "libc++_shared.so",
+    "libmlkit_google_ocr_pipeline.so",
+    "libjackpal-androidterm5.so",
+    "libjackpal-termexec2.so"
+  ],
   "main": "start.js",
-  "name": "个人数据生成器-扫地机改版",
-  "optimization": {
-    "obfuscateComponents": false,
-    "removeAccessibilityService": false,
-    "removeOpenCv": false,
-    "unusedResources": false
-  },
-  "packageName": "com.autouser.saodiji",
-  "permissionConfig": {
-    "requestListOnStartup": [
-      "android.permission.WRITE_EXTERNAL_STORAGE"
-    ]
-  },
-  "publish": {
-    "category": "",
-    "details": "",
-    "maxAutoJsVersion": 0,
-    "maxProVersion": 0,
-    "minAutoJsVersion": 0,
-    "minProVersion": 0,
-    "minSdkVersion": 0,
-    "permissions": [],
-    "summary": "",
-    "tags": []
-  },
+  "name": "个人数据生成器-六周年改版",
+  "outputPath": "/storage/emulated/0/脚本/autoUserData/build",
+  "packageName": "com.autouser.yinghuo",
+  "projectDirectory": "/storage/emulated/0/脚本/autouserdata",
   "scripts": {},
   "signingConfig": {
-    "alias": "",
-    "keystore": "",
-    "uuid": ""
+    "alias": null,
+    "keystore": null
   },
+  "sourcePath": "/storage/emulated/0/脚本/autoUserData/start.js",
   "versionCode": 1,
-  "versionName": "1.0.1"
+  "versionName": "1.0.8"
 }

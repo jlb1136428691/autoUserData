@@ -15,14 +15,19 @@ ui.layout(
             <text textSize="16sp" text="菜谱最大编号数"/>
             <input id="maxRepId" inputType="number" text=""/>
           </vertical>
+          <vertical>
+            <Switch id="switchPattern" text="B模式" checked="false" textSize="16sp"/>
+          </vertical> 
           <button id="startButton" marginTop="20">开始运行</button>
+          <text marginTop="12" text="本版本为六周年ui改版，厨师、菜谱、后厨总数后续游戏更新了，请手动修改！" textColor="red"/>
           <text marginTop="20" text="脚本运行无需root，需要打开无障碍服务和软件悬浮窗权限，点击开始运行，左上角出现悬浮按钮[开始]，切换到游戏图鉴页面后，点击[开始]，然后放着等执行即可。"/>
-          <text marginTop="12" text="正常执行会分别进入名厨录、名菜录并翻页翻到底，耗时大约2分半，执行成功会弹窗提示。"/>
+          <text marginTop="12" text="正常执行会分别进入名厨录、名菜录并翻页翻到底，执行成功会弹窗提示，最终停留在菜谱第一页。若非停留在最后一页，可以重启尝试或开启B模式!"/>
+          <text marginTop="12" text="B模式下将对页码进行验证，尽可能保证遍历到全部的菜谱，但无法解决网络卡顿导致的问题"/>
           <text marginTop="12" text="数据文件地址：/sdcard/AutoUserData（/sdcard 指手机文件管理的根目录），其中 bcjhData.txt 是白菜菊花数据，foodgameData.txt 是L版图鉴数据。"/>
           <text marginTop="12" text="数据生成完成后打开白菜菊花/L图鉴，在个人页找到个人数据备份（文件版），将生成的数据导入即可。"/>
           <text marginTop="12" text="注意：" textSize="18sp"/>
           <text marginTop="12" textSize="16sp" text="本APP能自动生成爆炒江湖两个图鉴网的厨师已有、菜谱已有和品级数据；修炼和专精数据还是需要手动维护，本APP生成的数据文件导入时不会覆盖手动维护的修炼和专精数据"/>
-          <text marginTop="12" textSize="16sp" text="运行前请确认厨师和菜谱的最大编号数据正确（正常不用改，游戏有更新我会更新后台数据）"/>
+          <text marginTop="12" textSize="16sp" text="运行前请确认厨师和菜谱的最大编号数据正确"/>
           <text marginTop="12" textSize="16sp" text="使用时最好关闭[夜间模式]和[护眼模式]"/>
           <text marginTop="12" textSize="16sp" text="因为获得新菜谱时的[新]与[神]级颜色太接近，防止品阶数据出错，使用前需要点一下菜谱图鉴然后退出，把新菜的标记清掉"/>
           <text marginTop="12" text="其他：" textSize="18sp"/>
@@ -51,7 +56,7 @@ const api = {
 let detailRegion = {};
 
 // 默认配置
-let config = { maxChefId: 1272, maxRepId: 671, comboCnt: 14 };
+let config = { maxChefId: 1602, maxRepId: 792, comboCnt: 18 };
 // 厨师菜谱编号
 let chefId = 0;
 let repId = 0;
@@ -67,6 +72,9 @@ const rankColor = [
   { rank: '优', color: '#a6c216' }
 ];
 
+// B模式
+let bPattern = false;
+
 const dw = device.width;
 const dh = device.height;
 
@@ -81,7 +89,7 @@ const colorCfg = {
     loc: { x: Math.floor(0.0426 * dw), y: Math.floor(dh * 0.0054) }
   },
   pageDown: {
-    color: '#f7c60b',
+    color: '#ffc45c',
     loc: { x: Math.floor(0.035 * dw), y: Math.floor(dh * 0.0075) }
   },
   back: {
@@ -89,11 +97,11 @@ const colorCfg = {
     loc: { x: Math.floor(0.047 * dw), y: Math.floor(dh * 0.01) }
   },
   topLeft: {
-    color: '#4c2b32',
+    color: '#ead5b6',
     loc: { x: Math.floor(0.02 * dw), y: Math.floor(dh * 0) }
   },
   bottomLeft: {
-    color: '#613c45',
+    color: '#cb8549',
     loc: { x: Math.floor(0.013 * dw), y: Math.floor(dh * 0.03) }
   }
 };
@@ -118,13 +126,13 @@ ui.emitter.on('options_item_selected', (e, item)=>{
 });
 activity.setSupportActionBar(ui.toolbar);
 
-try { // 调用接口获取配置
-  let res = http.get(api.bcjh + 'get_auto_config');
-  let resBody = JSON.parse(res.body.string());
-  config = resBody;
-} catch (e) {
-  log('调用配置获取接口失败', e);
-}
+// try { // 调用接口获取配置
+//   var res = http.get(api.bcjh + 'get_auto_config');
+//   let resBody = JSON.parse(res.body.string());
+//   config = resBody;
+// } catch (e) {
+//   log('调用配置获取接口失败', e);
+// }
 ui.maxChefId.setText(String(config.maxChefId));
 ui.maxRepId.setText(String(config.maxRepId));
 
@@ -193,42 +201,34 @@ function startActivitys() {
 
     let pagedown = findByImg('翻页箭头', transRegion(0.83, 0.7, 0.17, 0.25), 'pageDown');
 
-    //以下为扫地机修改
+    let mid = detailRegion['1-2'];
+    let progressBar = [mid.x-mid.w,detailRegion['4-3'].y+mid.h*2.1,mid.w*2,mid.h];
+    
+    if(bPattern){
+      console.log("B模式已启动")
+    }
 
-    let confirm_r = transRegion(0.25, 0, 0.5, 0.25)
-    confirm_r[1] = pagedown.y - 0.15 * dh
-    let confirm = findByImg('进度条左端', confirm_r)
-    let confirm_mode = true
-    let confirm_clip_rw, confirm_clip_rh, confirm_clip_last
-    if (confirm){
-      confirm_clip_rw = Math.floor(dw / 2 - confirm.x)
-      confirm_clip_rh = Math.floor(dh*0.03)
-      console.log(confirm_clip_rw, confirm_clip_rh)
-      let deviceScreen = images.captureScreen()
-      confirm_clip_last = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
-      deviceScreen.recycle()
-    }else confirm_mode = false //没找到，不启用
+
 
     for (let i = 1; i <= Math.ceil(config.maxChefId / 12); i++) { // 设置数据，循环翻页
       setChef();
       clickFind(pagedown);
-      if (confirm_mode){
-        sleep(400)
-        let deviceScreen, confirm_clip
-        for (let j = 0; j < 10; j++) {
-          deviceScreen = images.captureScreen()
-          confirm_clip = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
-          deviceScreen.recycle()
-          let sim = images.getSimilarity(confirm_clip, confirm_clip_last)
-          if (sim < 2.95) break
-          console.log('翻页失败, 相似度:', sim)
+      if(bPattern){
+        sleep(100);
+        let deviceScreen = images.captureScreen();
+        let sumImage = images.clip(deviceScreen,progressBar[0],progressBar[1],progressBar[2],progressBar[3]);
+        // files.create('/sdcard/AutoUserData/logImages/sum/');
+        // images.save(sumImage, '/sdcard/AutoUserData/logImages/sum/'+i+'.png');
+        let res = gmlkit.ocr(sumImage,"la");
+        let arr = res.text.split("/");
+        // console.log("t:" + arr[0]);
+        if(arr[0]>= i && arr[0]<Number(i)+Number(1)){
+          console.log(i+'页卡顿');
           clickFind(pagedown);
-          sleep(1000)
-          console.log('waiting')
-          confirm_clip.recycle()
+          sleep(100);
+          console.log("waiting");
         }
-        confirm_clip_last.recycle()
-        confirm_clip_last = confirm_clip
+        arr.recycle;
       }
     }
 
@@ -250,34 +250,26 @@ function startActivitys() {
     clickFind(rep);
     sleep(100);
 
-    if (confirm_mode){
-      let deviceScreen = images.captureScreen()
-      confirm_clip_last.recycle()
-      confirm_clip_last = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
-      deviceScreen.recycle()
-    }
-
 
     for (let i = 1; i <= Math.ceil(config.maxRepId / 12); i++) { // 设置数据，循环翻页
       setRep();
       clickFind(pagedown);
-      if (confirm_mode){
-        sleep(400)
-        let deviceScreen, confirm_clip
-        for (let j = 0; j < 10; j++) {
-          deviceScreen = images.captureScreen()
-          confirm_clip = images.clip(deviceScreen, confirm.x, confirm.y, confirm_clip_rw, confirm_clip_rh)
-          deviceScreen.recycle()
-          let sim = images.getSimilarity(confirm_clip, confirm_clip_last)
-          if (sim < 2.95) break
-          console.log('翻页失败, 相似度:', sim)
+      if(bPattern){
+        sleep(100);
+        let deviceScreen = images.captureScreen();
+        let sumImage = images.clip(deviceScreen,progressBar[0],progressBar[1],progressBar[2],progressBar[3]);
+        // files.create('/sdcard/AutoUserData/logImages/sum/');
+        // images.save(sumImage, '/sdcard/AutoUserData/logImages/sum/'+i+'.png');
+        let res = gmlkit.ocr(sumImage,"la");
+        let arr = res.text.split("/");
+        // console.log("t:" + arr[0]);
+        if(arr[0]>= i && arr[0]<Number(i)+Number(1)){
+          console.log(i+'页卡顿');
           clickFind(pagedown);
-          sleep(1000)
-          console.log('waiting')
-          confirm_clip.recycle()
+          sleep(100);
+          console.log("waiting");
         }
-        confirm_clip_last.recycle()
-        confirm_clip_last = confirm_clip
+        arr.recycle;
       }
     }
     sleep(500)
@@ -308,15 +300,21 @@ function saveLogImages(screen, r, name) {
 
 // 设置厨师数据
 function setChef() {
-  sleep(500);
+  sleep(100);
   let deviceScreen = images.captureScreen();
   let gray = images.grayscale(deviceScreen); // 灰度化图片
-  let bin = images.inRange(gray, "#505050", "#ffffff") // 将图片二值化，把比背景颜色深的置为黑，其余为白
+  let bin = images.inRange(gray, "#707070", "#ffffff") // 将图片二值化，把比背景颜色深的置为黑，其余为白
   for (let y = 1; y <= 4; y++) { // 4行
     chefId += 3;
     if (chefId > config.maxChefId) break; // 如果编号超过最大值，跳出循环
     let r = detailRegion[y + '-1']; // 判断一阶厨师
-    let clip = images.clip(bin, r.x, r.y, r.w, r.h); // 截取图片
+    let clip = images.clip(bin, r.x, r.y, r.w, r.h*1.2); // 截取图片
+    // if (chefId == 726 || chefId == 1437){
+    //   files.create('/sdcard/AutoUserData/logImages/abc/');
+    //   images.save(gray, '/sdcard/AutoUserData/logImages/abc/' + chefId + '.png');
+    // }
+    // files.create('/sdcard/AutoUserData/logImages/chef/');
+    // images.save(clip, '/sdcard/AutoUserData/logImages/chef/' + chefId + '.png');
     let p = findColor(clip, "#ffffff"); // 有白色就说明拥有厨师
     bcjhData.chefGot[chefId] = Boolean(p);
     foodgameData.chefs.push({
@@ -331,17 +329,19 @@ function setChef() {
 
 // 设置菜谱数据
 function setRep() {
-  sleep(500);
+  sleep(100);
   let deviceScreen = images.captureScreen();
   let gray = images.grayscale(deviceScreen); // 灰度化图片
-  let bin = images.inRange(gray, "#505050", "#ffffff") // 将图片二值化，把比背景颜色深的置为黑，其余为白
+  let bin = images.inRange(gray, "#707070", "#ffffff") // 将图片二值化，把比背景颜色深的置为黑，其余为白
   for (let y = 1; y <= 4; y++) { // 4行
     for (let x = 1; x <= 3; x++) { // 3列
       repId += 1;
       if (repId > config.maxRepId) break; // 如果编号超过最大值，跳出循环
       let r = detailRegion[y + '-' + x];
       let clip = images.clip(bin, r.x, r.y, r.w, r.h); // 截取图片
-      let p = findColor(clip, "#ffffff"); // 有白色就说明拥有厨师
+      // files.create('/sdcard/AutoUserData/logImages/rep/');
+      // images.save(clip, '/sdcard/AutoUserData/logImages/rep/' + repId + '.png');
+      let p = findColor(clip, "#ffffff"); // 有白色就说明拥有菜谱
       bcjhData.repGot[repId] = Boolean(p);
       let rep = {
         id: repId,
@@ -498,5 +498,14 @@ function reset_log() {
   });
   toast('缓存清除完毕');
 }
+
+
+ui.switchPattern.on("check", function (checked) {
+  if(checked) {
+    bPattern = true;
+  }else {
+    bPattern = false;
+  }
+});
 
 ui.startButton.on('click', openGame);
