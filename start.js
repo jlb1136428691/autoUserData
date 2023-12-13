@@ -19,7 +19,7 @@ ui.layout(
             <Switch id="switchPattern" text="B模式" checked="false" textSize="16sp"/>
           </vertical> 
           <button id="startButton" marginTop="20">开始运行</button>
-          <text marginTop="12" text="本版本为六周年ui改版，厨师、菜谱、后厨总数后续游戏更新了，请手动修改！" textColor="red"/>
+          {/* <text marginTop="12" text="本版本为六周年ui改版，厨师、菜谱、后厨总数后续游戏更新了，请手动修改！" textColor="red"/> */}
           <text marginTop="20" text="脚本运行无需root，需要打开无障碍服务和软件悬浮窗权限，点击开始运行，左上角出现悬浮按钮[开始]，切换到游戏图鉴页面后，点击[开始]，然后放着等执行即可。"/>
           <text marginTop="12" text="正常执行会分别进入名厨录、名菜录并翻页翻到底，执行成功会弹窗提示，最终停留在菜谱第一页。若非停留在最后一页，可以重启尝试或开启B模式!"/>
           <text marginTop="12" text="B模式下将对页码进行验证，尽可能保证遍历到全部的菜谱，但无法解决网络卡顿导致的问题"/>
@@ -27,7 +27,7 @@ ui.layout(
           <text marginTop="12" text="数据生成完成后打开白菜菊花/L图鉴，在个人页找到个人数据备份（文件版），将生成的数据导入即可。"/>
           <text marginTop="12" text="注意：" textSize="18sp"/>
           <text marginTop="12" textSize="16sp" text="本APP能自动生成爆炒江湖两个图鉴网的厨师已有、菜谱已有和品级数据；修炼和专精数据还是需要手动维护，本APP生成的数据文件导入时不会覆盖手动维护的修炼和专精数据"/>
-          <text marginTop="12" textSize="16sp" text="运行前请确认厨师和菜谱的最大编号数据正确"/>
+          <text marginTop="12" textSize="16sp" text="运行前请确认厨师和菜谱的最大编号数据正确,后台会自动同步白菜的接口!"/>
           <text marginTop="12" textSize="16sp" text="使用时最好关闭[夜间模式]和[护眼模式]"/>
           <text marginTop="12" textSize="16sp" text="因为获得新菜谱时的[新]与[神]级颜色太接近，防止品阶数据出错，使用前需要点一下菜谱图鉴然后退出，把新菜的标记清掉"/>
           <text marginTop="12" text="其他：" textSize="18sp"/>
@@ -127,13 +127,27 @@ ui.emitter.on('options_item_selected', (e, item)=>{
 });
 activity.setSupportActionBar(ui.toolbar);
 
-// try { // 调用接口获取配置
-//   var res = http.get(api.bcjh + 'get_auto_config');
-//   let resBody = JSON.parse(res.body.string());
-//   config = resBody;
-// } catch (e) {
-//   log('调用配置获取接口失败', e);
-// }
+function fetch(){
+  try { // 调用接口获取配置
+    var responseData = http.get(api.bcjh + 'get_auto_config');
+    let resBody = JSON.parse(responseData.body.string());
+    config = resBody;
+
+  } catch (e) {
+    log('调用配置获取接口失败', e);
+  }
+}
+
+function backgroundThread(){
+  threads.start(function(){
+    fetch();
+    ui.maxChefId.setText(String(config.maxChefId));
+    ui.maxRepId.setText(String(config.maxRepId));
+  });
+}
+backgroundThread();
+
+
 ui.maxChefId.setText(String(config.maxChefId));
 ui.maxRepId.setText(String(config.maxRepId));
 
